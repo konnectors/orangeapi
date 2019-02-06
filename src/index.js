@@ -1,7 +1,8 @@
 const {
   BaseKonnector,
   requestFactory,
-  saveBills
+  saveBills,
+  log
 } = require('cozy-konnector-libs')
 const request = requestFactory({
   // debug: true,
@@ -30,15 +31,22 @@ async function start(fields) {
           : `facture_internet_${date}.pdf`,
       filestream: bill.file,
       vendor: 'Orange',
-      date
+      date: new Date(bill.creation_date)
     }
   })
 
   await saveBills(bills, fields, {
+    identifiers: ['orange'],
     contentType: 'application/pdf; charset=IBM850',
     processPdf: (entry, text, cells) => {
       const euroIndex = cells['1'].findIndex(cell => cell.str === '€')
-      entry.amount = parseFloat(cells['1'][euroIndex - 2].str.replace(',', '.'))
+      const amount = parseFloat(cells['1'][euroIndex - 2].str.replace(',', '.'))
+      if (amount) {
+        entry.amount = amount
+      } else {
+        log('warn', `Could not find an amount in this file ${entry.filename}`)
+        return false
+      }
       const dateIndex = cells['1'].findIndex(
         cell => cell.str === 'total du montant prélevé'
       )
@@ -50,6 +58,8 @@ async function start(fields) {
         entry.date = date.toDate()
       }
 
+      log('info', 'resulting entry')
+      log('info', JSON.stringify(entry))
       return entry
     }
   })
