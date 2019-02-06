@@ -3,7 +3,7 @@
   "name": "Orange API",
   "type": "konnector",
   "language": "node",
-  "icon": "icon.png",
+  "icon": "orange.svg",
   "slug": "orangeapi",
   "source": "git://github.com/konnectors/orangeapi.git",
   "editor": "Cozy",
