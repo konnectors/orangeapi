@@ -48,6 +48,9 @@
     "accounts": {
       "type": "io.cozy.accounts",
       "verbs": ["GET"]
+    },
+    "identities": {
+      "type": "io.cozy.identities"
     }
   },
   "developer": {
@@ -71,6 +74,9 @@
         },
         "accounts": {
           "description": "Utilisé pour obtenir les données du compte"
+        },
+        "identities": {
+          "description": "Pour pouvoir réutiliser votre identité Orange"
         }
       }
     },
@@ -89,6 +95,9 @@
         },
         "accounts": {
           "description": "Required to get the account's data"
+        },
+        "identities": {
+          "description": "Required to save your identity and reuse it"
         }
       }
     }

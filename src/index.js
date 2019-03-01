@@ -2,25 +2,27 @@ const {
   BaseKonnector,
   requestFactory,
   saveBills,
-  log
+  log,
+  cozyClient,
+  manifest
 } = require('cozy-konnector-libs')
-const request = requestFactory({
+let request = requestFactory({
   // debug: true,
   cheerio: false,
   json: true
 })
 const moment = require('moment')
+const { Document } = require('cozy-doctypes')
 
 module.exports = new BaseKonnector(start)
 
 async function start(fields) {
-  // TODO check what to do with this data
-  await request('https://api.orange.com/userdetails/fr/v2/userinfo/', {
+  request = request.defaults({
     auth: {
       bearer: fields.access_token
     }
   })
-
+  await saveIdentity.bind(this)()
   const response = await fetchBills(fields)
   const bills = response.customer_bills.map(bill => {
     const date = moment(bill.creation_date).format('DD_MM_YYYY')
@@ -136,4 +138,59 @@ async function fetchBills(fields) {
   })
 
   return response
+}
+
+async function saveIdentity() {
+  class Identity extends Document {
+    static addCozyMetadata(attributes) {
+      super.addCozyMetadata(attributes)
+
+      Object.assign(attributes.cozyMetadata, {
+        doctypeVersion: 1,
+        createdAt: new Date(),
+        createdByAppVersion: manifest.version,
+        sourceAccount: Identity.accountId
+      })
+
+      return attributes
+    }
+  }
+  Identity.doctype = 'io.cozy.identities'
+  Identity.idAttributes = ['identifier', 'cozyMetadata.sourceAccount']
+  Identity.createdByApp = manifest.slug
+  Identity.registerClient(cozyClient)
+  Identity.accountId = this._account._id
+
+  const user = await request(
+    'https://api.orange.com/userdetails/fr/v2/userinfo/'
+  )
+
+  const ident = {
+    identifier: user.email,
+    contact: {
+      email: {
+        address: user.email
+      },
+      name: {
+        familyName: user.family_name,
+        givenName: user.given_name
+      },
+      phone: {
+        number: user.phone_number,
+        primary: true,
+        type: 'mobile'
+      }
+    }
+  }
+
+  if (user.address) {
+    ident.contact.address = {
+      formattedAddress: user.address.formatted,
+      street: user.address.street_address,
+      postcode: user.address.postal_code,
+      city: user.address.locality
+    }
+  }
+
+  await Identity.createOrUpdate(ident)
 }
