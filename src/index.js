@@ -193,4 +193,11 @@ async function saveIdentity() {
   }
 
   await Identity.createOrUpdate(ident)
+
+  // also save to the me contact doctype
+  Identity.doctype = 'io.cozy.contacts'
+  Identity.idAttributes = ['me']
+  Identity.createdByApp = manifest.slug
+  Identity.accountId = this._account._id
+  await Identity.createOrUpdate({ ...ident.contact, me: true })
 }

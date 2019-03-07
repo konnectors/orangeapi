@@ -36,6 +36,9 @@
   ],
   "screenshots": [],
   "permissions": {
+    "contacts": {
+      "type": "io.cozy.contacts"
+    },
     "bank operations": {
       "type": "io.cozy.bank.operations"
     },
@@ -63,6 +66,9 @@
       "short_description": "Template de connecteur",
       "long_description": "Ce template récupère une liste de livres sur un site de scraping",
       "permissions": {
+        "contacts": {
+          "description": "Utilisé pour mettre à jour votre fiche contact personnelle"
+        },
         "bank operations": {
           "description": "Utilisé pour relier les factures à des operations bancaires"
         },
@@ -84,6 +90,9 @@
       "short_description": "Connector template",
       "long_description": "This template fetches a list of books from a scraping website",
       "permissions": {
+        "contacts": {
+          "description": "Required to create your personnal contact form"
+        },
         "bank operations": {
           "description": "Required to link bank operations to bills"
         },
