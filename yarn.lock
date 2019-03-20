@@ -1624,15 +1624,16 @@ cosmiconfig@^5.0.7:
     js-yaml "^3.9.0"
     parse-json "^4.0.0"
 
-cozy-app-publish@0.10.5:
-  version "0.10.5"
-  resolved "https://registry.yarnpkg.com/cozy-app-publish/-/cozy-app-publish-0.10.5.tgz#01992b00b904623434253bab6b3c3bdb31eeaf77"
-  integrity sha512-e8JQPHrJVbUhtuiu1VEy8G6fCHiQatlx0j4dFQ99oC2ora6gr19UZWCRrgPq4tIBVgG1m18a06JDVCriu/wedg==
+cozy-app-publish@0.15.0:
+  version "0.15.0"
+  resolved "https://registry.yarnpkg.com/cozy-app-publish/-/cozy-app-publish-0.15.0.tgz#25562e00814a8759e1927c56ee050cd357453d9a"
+  integrity sha512-kEyqd7vTkdlS8d9aU2OzZSTlth+ZNn4KHHOpMSTk/nbM21CeHpdNDlO/WvAy/atyJhxdiS6Zca0z6l2DMyjB6Q==
   dependencies:
     chalk "2.4.2"
     commander "2.19.0"
     cross-spawn "6.0.5"
     fs-extra "7.0.1"
+    lodash "4.17.11"
     node-fetch "2.3.0"
     prompt "1.0.0"
     request "2.88.0"
