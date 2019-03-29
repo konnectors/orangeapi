@@ -34,7 +34,7 @@
     "build": "webpack",
     "lint": "eslint --fix .",
     "deploy": "git-directory-deploy --directory build/ --branch ${DEPLOY_BRANCH:-build} --repo=${DEPLOY_REPOSITORY:-git@github.com:konnectors/orangeapi.git}",
-    "cozyPublish": "cozy-app-publish --token $REGISTRY_TOKEN --build-commit $(git rev-parse ${DEPLOY_BRANCH:-build})",
+    "cozyPublish": "cozy-app-publish --token $REGISTRY_TOKEN --build-commit $(git rev-parse ${DEPLOY_BRANCH:-build}) --postpublish mattermost",
     "travisDeployKey": "./bin/generate_travis_deploy_key"
   },
   "dependencies": {
