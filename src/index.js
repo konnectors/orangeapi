@@ -3,8 +3,8 @@ const {
   requestFactory,
   saveBills,
   log,
-  cozyClient
-  // manifest
+  cozyClient,
+  manifest
 } = require('cozy-konnector-libs')
 let request = requestFactory({
   // debug: true,
@@ -148,7 +148,7 @@ async function saveIdentity() {
       Object.assign(attributes.cozyMetadata, {
         doctypeVersion: 1,
         createdAt: new Date(),
-        // createdByAppVersion: manifest.version,
+        createdByAppVersion: manifest.version,
         sourceAccount: Identity.accountId
       })
 
@@ -157,7 +157,7 @@ async function saveIdentity() {
   }
   Identity.doctype = 'io.cozy.identities'
   Identity.idAttributes = ['identifier', 'cozyMetadata.sourceAccount']
-  // Identity.createdByApp = manifest.slug
+  Identity.createdByApp = manifest.slug
   Identity.registerClient(cozyClient)
   Identity.accountId = this._account._id
 
@@ -197,7 +197,7 @@ async function saveIdentity() {
   // also save to the me contact doctype
   Identity.doctype = 'io.cozy.contacts'
   Identity.idAttributes = ['me']
-  // Identity.createdByApp = manifest.slug
+  Identity.createdByApp = manifest.slug
   Identity.accountId = this._account._id
   await Identity.createOrUpdate({ ...ident.contact, me: true })
 }
