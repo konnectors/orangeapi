@@ -4,7 +4,8 @@ const {
   saveBills,
   log,
   cozyClient,
-  manifest
+  manifest,
+  errors
 } = require('cozy-konnector-libs')
 let request = requestFactory({
   // debug: true,
@@ -22,7 +23,10 @@ async function start(fields) {
       bearer: fields.access_token
     }
   })
-  await saveIdentity.bind(this)()
+
+  await checkToken.bind(this)(fields)
+
+  await saveIdentity.bind(this)(fields)
   const response = await fetchBills(fields)
   const bills = response.customer_bills.map(bill => {
     const date = moment(bill.creation_date).format('DD_MM_YYYY')
@@ -140,7 +144,7 @@ async function fetchBills(fields) {
   return response
 }
 
-async function saveIdentity() {
+async function saveIdentity(fields) {
   class Identity extends Document {
     static addCozyMetadata(attributes) {
       super.addCozyMetadata(attributes)
@@ -163,6 +167,12 @@ async function saveIdentity() {
 
   const user = await request(
     'https://api.orange.com/userdetails/fr/v2/userinfo/'
+  )
+
+  this._account = await ensureAccountNameAndFolder(
+    this._account,
+    fields,
+    user.email
   )
 
   const ident = {
@@ -198,6 +208,80 @@ async function saveIdentity() {
   Identity.doctype = 'io.cozy.contacts'
   Identity.idAttributes = ['me']
   Identity.createdByApp = manifest.slug
-  Identity.accountId = this._account._id
+  Identity.accountId = this.accountId
   await Identity.createOrUpdate({ ...ident.contact, me: true })
+}
+
+async function ensureAccountNameAndFolder(account, fields, email) {
+  const firstRun = !account || !account.label
+
+  if (!firstRun) return
+
+  try {
+    log('info', `This is the first run`)
+    const label = email
+
+    log('info', `Updating the label of the account`)
+    let newAccount = await cozyClient.data.updateAttributes(
+      'io.cozy.accounts',
+      account._id,
+      {
+        label,
+        auth: {
+          ...account.auth,
+          accountName: label
+        }
+      }
+    )
+
+    log('info', `Renaming the folder to ${label}`)
+    const newFolder = await cozyClient.files.updateAttributesByPath(
+      fields.folderPath,
+      {
+        name: label
+      }
+    )
+
+    fields.folderPath = newFolder.attributes.path
+
+    log('info', `Updating the folder path in the account`)
+    newAccount = await cozyClient.data.updateAttributes(
+      'io.cozy.accounts',
+      newAccount._id,
+      {
+        label,
+        auth: {
+          ...newAccount.auth,
+          folderPath: fields.folderPath,
+          namePath: label
+        }
+      }
+    )
+    return newAccount
+  } catch (err) {
+    log(
+      'warn',
+      `Error while trying to update folder path or account name: ${err.message}`
+    )
+  }
+}
+
+async function checkToken(fields) {
+  try {
+    await request('https://api.orange.com/userdetails/fr/v2/userinfo/')
+  } catch (err) {
+    if (err.statusCode === 401) {
+      try {
+        const body = await cozyClient.fetchJSON(
+          'POST',
+          `/accounts/orangeapi/${this.accountId}/refresh`
+        )
+        fields.access_token = body.attributes.oauth.access_token
+        log('info', `access_token refresh ok`)
+      } catch (err) {
+        log('info', `Error during refresh ${err.message}`)
+        throw errors.USER_ACTION_NEEDED_OAUTH_OUTDATED
+      }
+    }
+  }
 }
