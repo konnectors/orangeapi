@@ -268,7 +268,9 @@ async function ensureAccountNameAndFolder(account, fields, email) {
 
 async function checkToken(fields) {
   try {
+    log('info', 'checking token')
     await request('https://api.orange.com/userdetails/fr/v2/userinfo/')
+    log('info', 'token ok')
   } catch (err) {
     if (err.statusCode === 401) {
       try {
