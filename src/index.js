@@ -1,3 +1,4 @@
+require('isomorphic-fetch')
 const {
   BaseKonnector,
   requestFactory,
@@ -45,14 +46,6 @@ async function start(fields) {
     identifiers: ['orange'],
     contentType: 'application/pdf; charset=IBM850',
     processPdf: (entry, text, cells) => {
-      const euroIndex = cells['1'].findIndex(cell => cell.str === '€')
-      const amount = parseFloat(cells['1'][euroIndex - 2].str.replace(',', '.'))
-      if (amount) {
-        entry.amount = amount
-      } else {
-        log('warn', `Could not find an amount in this file ${entry.filename}`)
-        return false
-      }
       const dateIndex = cells['1'].findIndex(
         cell => cell.str === 'total du montant prélevé'
       )
@@ -60,9 +53,35 @@ async function start(fields) {
         cells['1'][dateIndex + 1].str.replace('au ', ''),
         'DD.MM.YYYY'
       )
-      if (moment.isDate(date)) {
-        entry.date = date.toDate()
-      }
+
+      const top =
+        cells['1'][dateIndex].transform.pop() + cells['1'][dateIndex].height
+      const bottom = cells['1'][dateIndex + 1].transform.pop()
+
+      const amountCell = cells['1'].find(cell => {
+        const cellBottom = cell.transform.pop()
+        const cellTop = cellBottom + cell.height
+        return (
+          cellBottom > bottom &&
+          cellTop < top &&
+          parseFloat(
+            cell.str
+              .replace('€', '')
+              .replace(',', '.')
+              .trim()
+          )
+        )
+      })
+
+      const amount = parseFloat(
+        amountCell.str
+          .replace(',', '.')
+          .replace('€', '')
+          .trim()
+      )
+
+      entry.date = date.toDate()
+      entry.amount = amount
 
       log('info', 'resulting entry')
       log('info', JSON.stringify(entry))
