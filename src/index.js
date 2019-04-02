@@ -6,7 +6,8 @@ const {
   log,
   cozyClient,
   manifest,
-  errors
+  errors,
+  utils
 } = require('cozy-konnector-libs')
 let request = requestFactory({
   // debug: true,
@@ -30,12 +31,11 @@ async function start(fields) {
   await saveIdentity.bind(this)(fields)
   const response = await fetchBills(fields)
   const bills = response.customer_bills.map(bill => {
-    const date = moment(bill.creation_date).format('DD_MM_YYYY')
     return {
       filename:
         bill.contract_type === 'mobile'
-          ? `facture_mobile_${date}.pdf`
-          : `facture_internet_${date}.pdf`,
+          ? `${utils.formatDate(bill.creation_date)}_facture_mobile.pdf`
+          : `${utils.formatDate(bill.creation_date)}_facture_internet.pdf`,
       filestream: bill.file,
       vendor: 'Orange',
       date: new Date(bill.creation_date)
@@ -169,7 +169,7 @@ async function saveIdentity(fields) {
       super.addCozyMetadata(attributes)
 
       Object.assign(attributes.cozyMetadata, {
-        doctypeVersion: 1,
+        doctypeVersion: 2,
         createdAt: new Date(),
         createdByAppVersion: manifest.version,
         sourceAccount: Identity.accountId
