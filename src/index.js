@@ -7,7 +7,8 @@ const {
   cozyClient,
   manifest,
   errors,
-  utils
+  utils,
+  mkdirp
 } = require('cozy-konnector-libs')
 let request = requestFactory({
   // debug: true,
@@ -265,12 +266,7 @@ async function ensureAccountNameAndFolder(account, fields, email) {
     )
 
     log('info', `Renaming the folder to ${label}`)
-    const newFolder = await cozyClient.files.updateAttributesByPath(
-      fields.folderPath,
-      {
-        name: label
-      }
-    )
+    const newFolder = await mkdirp([fields.folderPath, label])
 
     fields.folderPath = newFolder.attributes.path
 
