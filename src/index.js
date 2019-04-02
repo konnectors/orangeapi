@@ -246,7 +246,10 @@ async function saveIdentity(fields) {
 async function ensureAccountNameAndFolder(account, fields, email) {
   const firstRun = !account || !account.label
 
-  if (!firstRun) return
+  if (!firstRun) {
+    fields.folderPath = account.auth.folderPath
+    return
+  }
 
   try {
     log('info', `This is the first run`)
@@ -266,7 +269,7 @@ async function ensureAccountNameAndFolder(account, fields, email) {
     )
 
     log('info', `Renaming the folder to ${label}`)
-    const newFolder = await mkdirp([fields.folderPath, label])
+    const newFolder = await mkdirp([fields.folderPath, label].join('/'))
 
     fields.folderPath = newFolder.attributes.path
 
