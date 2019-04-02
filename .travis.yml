@@ -3,9 +3,12 @@ node_js:
 - '8'
 env:
   global:
+  - MATTERMOST_CHANNEL=teamconnecteurs
   - GH_USER_EMAIL="travis@example.org"
   - GH_USER_NAME="cozy-bot"
   - DEPLOY_REPOSITORY="git@github.com:konnectors/orangeapi.git"
+  - secure: i0juhuLrcfR46O9mgC1wpTPy/EZno6zevlrpNf4OG41dG/ISR8XxH5zI+1E9QOIQZQ9H0rBi7BC4YLI/EduIjBt5Sfl656bunWhOHj3kcRNmjLijZdOXWBNNMKeqc64rZNAKKXRzzaGtxsKBJCuCb09NUWYAi/BRPPogyBAPsEZ1Cqz8pIm9F5JVljEQsMAqQ1XAcDr07fb2z9FY6CSsiqHN62LX+e+Uaxj1Lpygr1nCDYf2ECYHma2YA+e5eZmssIKmIts05KVqqKh3r7PBAbDiO8NxZpPGH9/ubNZMNPgpx81SoK9g/6hgEEzrp1/c10SC0eVOBmM1LeqADEgQxkCS9MYlnVHEdm3QD1D0iFDy3yW0k5L7VYVZ0DdXzfMhHSVXSjCRZjsv6aZUQbzK6pJz9hc/gFx3CVon3hncibAn4YOIeac3sRk2SD2v6OGMDdbwv5fbL2vycXNrLBNiymwJx56N1Y3gANKIkuFVcS/F/2n0wgk+dOuUDNTokT+ksRc/91JIjFJj8MMWXAGr0djybVMRqGUyAwLzLFXDyUeFvV/TdtGnkNabiQh6aLxg8GS97JrXqsXU+Aw0Z4OotVZ+V4Rn5QSdLtaxBST9F3a7HmnHhssPMw2GyYGPydqTObskQ5TkhRPOHn5ALrPq5IrlAITSnbzO21bnvvHB4WM=
+  - secure: hMaDE2GBn/DhM1SryrdthuykKsfGqVP2HqOn+TH19A0pqkR+VPZA3R6oPbrVwfT/Wb0vE/7OlIZ8JW/pAWu1ij7OLNs3DABo/XcQlzuNA8fBCfxrKNocKyVyJOITzhBw4iyw2eDZXPznviyMEeipspEn01FWO5VpCIwRl136DZEqDs251YKM3iIYGCkYX3lEjfWy7XgCTx9p8HR7wiH1q7GaQq6zPevPKS1Bb0gYhcSXtZmBr3kDi48hAXiIW2Sg/E6Ht7PpTZRoIaJUFEwdH4iR1fJ3bleLv3B/gmECQg1C4fCanSG5WPMJ3ZA5bGK3tsTsIfaeJ6iajigbBCpAFL38+GY+dG2WQSeAXMPKqvW4EZAqKt9RrbJKZfD+WhHI9am89Y89uoVSwIV2PzdNj9vU3MFwSzcZqPsWB4Ybk8g7QN8WMG75Z1vUPSPbATMPPWhqsxypXNwtey47WFPyHTxPPQvv/9qX9DVMHqy2Pn7IHxAa6x0GC8fS5fRD1NuF+opccoANHC0cyJrdvZQ7BwTE1SE2bef2m/cyJmpd/zXbsbkTxiTabjmNMcB/CgSdaeMAqUXj9WUhABuvQvlcUhF0aACGxoj36N3G1voVgIZPK0hRqM8edvRtcF5damtmlYdVJkG6Qv0XW0UTRelrodRUNlhOtmU/itum+RxWyP8=
 cache:
   yarn: true
   directories:
@@ -30,6 +33,8 @@ deploy:
   on:
     tags: true
 before_install:
+- openssl aes-256-cbc -K $encrypted_eeb1fbebcb96_key -iv $encrypted_eeb1fbebcb96_iv
+  -in github_deploy_key.enc -out /tmp/github_deploy_key -d
 - eval "$(ssh-agent -s)"
 - chmod 600 /tmp/github_deploy_key
 - ssh-add /tmp/github_deploy_key
