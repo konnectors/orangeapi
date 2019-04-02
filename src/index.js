@@ -197,28 +197,34 @@ async function saveIdentity(fields) {
   const ident = {
     identifier: user.email,
     contact: {
-      email: {
-        address: user.email
-      },
+      email: [
+        {
+          address: user.email
+        }
+      ],
       name: {
         familyName: user.family_name,
         givenName: user.given_name
       },
-      phone: {
-        number: user.phone_number,
-        primary: true,
-        type: 'mobile'
-      }
+      phone: [
+        {
+          number: user.phone_number,
+          primary: true,
+          type: 'mobile'
+        }
+      ]
     }
   }
 
   if (user.address) {
-    ident.contact.address = {
-      formattedAddress: user.address.formatted,
-      street: user.address.street_address,
-      postcode: user.address.postal_code,
-      city: user.address.locality
-    }
+    ident.contact.address = [
+      {
+        formattedAddress: user.address.formatted,
+        street: user.address.street_address,
+        postcode: user.address.postal_code,
+        city: user.address.locality
+      }
+    ]
   }
 
   await Identity.createOrUpdate(ident)
