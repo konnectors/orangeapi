@@ -168,6 +168,11 @@ async function saveIdentity(fields) {
     static addCozyMetadata(attributes) {
       super.addCozyMetadata(attributes)
 
+      const index = attributes.cozyMetadata.updatedByApps.findIndex(
+        app => app.slug === manifest.slug
+      )
+      if (index !== -1)
+        attributes.cozyMetadata.updatedByApps[index].version = manifest.version
       Object.assign(attributes.cozyMetadata, {
         doctypeVersion: 2,
         createdAt: new Date(),
