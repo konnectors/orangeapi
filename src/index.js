@@ -240,7 +240,17 @@ async function saveIdentity(fields) {
   Identity.idAttributes = ['me']
   Identity.createdByApp = manifest.slug
   Identity.accountId = this.accountId
-  await Identity.createOrUpdate({ ...ident.contact, me: true })
+
+  // only create the "me" contact when it does not exist
+  const meContacts = await Identity.queryAll({
+    me: true
+  })
+  if (meContacts.length === 0) {
+    log('info', `The "me" contact could not be found, creating it`)
+    await Identity.createOrUpdate({ ...ident.contact, me: true })
+  } else {
+    log('info', `Found a "me" contact. Nothing to do`)
+  }
 }
 
 async function ensureAccountNameAndFolder(account, fields, email) {
