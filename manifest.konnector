@@ -62,8 +62,8 @@
   "langs": ["fr", "en"],
   "locales": {
     "fr": {
-      "short_description": "Template de connecteur",
-      "long_description": "Ce template récupère une liste de livres sur un site de scraping",
+      "short_description": "Récupère votre dernière facture",
+      "long_description": "Récupère votre dernière facture et vos informations de profil client Orange",
       "permissions": {
         "contacts": {
           "description": "Utilisé pour mettre à jour votre fiche contact personnelle"
@@ -86,8 +86,8 @@
       }
     },
     "en": {
-      "short_description": "Connector template",
-      "long_description": "This template fetches a list of books from a scraping website",
+      "short_description": "Fetch your bills",
+      "long_description": "Fetch your last bill and your Orange customer profile information",
       "permissions": {
         "contacts": {
           "description": "Required to create your personnal contact form"
