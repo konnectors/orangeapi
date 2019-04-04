@@ -12,6 +12,11 @@
     "telecom",
     "isp"
   ],
+  "folders": [
+    {
+      "defaultDir": "$administrative"
+    }
+  ],
   "fields": {
     "access_token": {
       "type": "hidden"
