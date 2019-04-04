@@ -29,8 +29,15 @@ async function start(fields) {
 
   await checkToken.bind(this)(fields)
 
-  await saveIdentity.bind(this)(fields)
+  const user = await request(
+    'https://api.orange.com/userdetails/fr/v2/userinfo/'
+  )
+
   const response = await fetchBills(fields)
+  user.contract_type = response.customer_bills[0].contract_type
+
+  await saveIdentity.bind(this)(user, fields)
+
   const bills = response.customer_bills.map(bill => {
     return {
       filename:
@@ -164,7 +171,7 @@ async function fetchBills(fields) {
   return response
 }
 
-async function saveIdentity(fields) {
+async function saveIdentity(user, fields) {
   class Identity extends Document {
     static addCozyMetadata(attributes) {
       super.addCozyMetadata(attributes)
@@ -190,70 +197,64 @@ async function saveIdentity(fields) {
   Identity.registerClient(cozyClient)
   Identity.accountId = this._account._id
 
-  const user = await request(
-    'https://api.orange.com/userdetails/fr/v2/userinfo/'
-  )
+  this._account = await ensureAccountNameAndFolder(this._account, fields, user)
 
-  this._account = await ensureAccountNameAndFolder(
-    this._account,
-    fields,
-    user.email
-  )
+  if (user.email) {
+    const ident = {
+      identifier: user.email,
+      contact: {
+        email: [
+          {
+            address: user.email
+          }
+        ],
+        name: {
+          familyName: user.family_name,
+          givenName: user.given_name
+        },
+        phone: [
+          {
+            number: user.phone_number,
+            primary: true,
+            type: 'mobile'
+          }
+        ]
+      }
+    }
 
-  const ident = {
-    identifier: user.email,
-    contact: {
-      email: [
+    if (user.address) {
+      ident.contact.address = [
         {
-          address: user.email
-        }
-      ],
-      name: {
-        familyName: user.family_name,
-        givenName: user.given_name
-      },
-      phone: [
-        {
-          number: user.phone_number,
-          primary: true,
-          type: 'mobile'
+          formattedAddress: user.address.formatted,
+          street: user.address.street_address,
+          postcode: user.address.postal_code,
+          city: user.address.locality
         }
       ]
     }
-  }
 
-  if (user.address) {
-    ident.contact.address = [
-      {
-        formattedAddress: user.address.formatted,
-        street: user.address.street_address,
-        postcode: user.address.postal_code,
-        city: user.address.locality
-      }
-    ]
-  }
+    await Identity.createOrUpdate(ident)
 
-  await Identity.createOrUpdate(ident)
+    // also save to the me contact doctype
+    Identity.doctype = 'io.cozy.contacts'
+    Identity.idAttributes = ['me']
+    Identity.createdByApp = manifest.slug
+    Identity.accountId = this.accountId
 
-  // also save to the me contact doctype
-  Identity.doctype = 'io.cozy.contacts'
-  Identity.idAttributes = ['me']
-  Identity.createdByApp = manifest.slug
-  Identity.accountId = this.accountId
-
-  // only create the "me" contact when it does not exist
-  const meContacts = await Identity.queryAll({
-    me: true
-  })
-  if (meContacts.length === 0) {
-    log('info', `The "me" contact could not be found, creating it`)
-    await Identity.createOrUpdate({ ...ident.contact, me: true })
-  } else {
-    log('info', `Found a "me" contact. Nothing to do`)
+    // only create the "me" contact when it does not exist
+    const meContacts = await Identity.queryAll({
+      me: true
+    })
+    if (meContacts.length === 0) {
+      log('info', `The "me" contact could not be found, creating it`)
+      await Identity.createOrUpdate({ ...ident.contact, me: true })
+    } else {
+      log('info', `Found a "me" contact. Nothing to do`)
+    }
   }
 }
 
-async function ensureAccountNameAndFolder(account, fields, email) {
+async function ensureAccountNameAndFolder(account, fields, user) {
   const firstRun = !account || !account.label
 
   if (!firstRun) {
@@ -263,7 +264,9 @@ async function ensureAccountNameAndFolder(account, fields, email) {
 
   try {
     log('info', `This is the first run`)
-    const label = email
+    const label = `${user.name} ${
+      user.contract_type === 'mobile' ? 'Mobile' : 'Internet'
+    }`
 
     log('info', `Updating the label of the account`)
     let newAccount = await cozyClient.data.updateAttributes(
