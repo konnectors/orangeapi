@@ -14,7 +14,7 @@
   ],
   "folders": [
     {
-      "defaultDir": "$administrative/$konnector"
+      "defaultDir": "$administrative/$konnector/$konnector"
     }
   ],
   "fields": {
