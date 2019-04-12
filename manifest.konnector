@@ -26,6 +26,11 @@
       }
     }
   },
+  "folders": [
+    {
+      "defaultDir": "$administrative"
+    }
+  ],
   "oauth": {
     "scope": [
       "profile_limited form_filling customer_bill_last_recurrent"
