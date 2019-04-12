@@ -12,11 +12,6 @@
     "telecom",
     "isp"
   ],
-  "folders": [
-    {
-      "defaultDir": "$administrative/$konnector/$konnector"
-    }
-  ],
   "fields": {
     "access_token": {
       "type": "hidden"
