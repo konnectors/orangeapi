@@ -18,12 +18,6 @@
     },
     "refresh_token": {
       "type": "hidden"
-    },
-    "advancedFields": {
-      "folderPath": {
-        "advanced": true,
-        "isRequired": false
-      }
     }
   },
   "folders": [
