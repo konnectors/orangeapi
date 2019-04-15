@@ -232,7 +232,7 @@ async function saveIdentity(user, fields) {
       ]
     }
 
-    await Identity.createOrUpdate(ident)
+    await Identity.createOrUpdate(Identity.addCozyMetadata(ident))
 
     // also save to the me contact doctype
     Identity.doctype = 'io.cozy.contacts'
