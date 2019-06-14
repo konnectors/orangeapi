@@ -2,10 +2,8 @@ require('isomorphic-fetch')
 const {
   BaseKonnector,
   requestFactory,
-  saveBills,
   log,
   cozyClient,
-  manifest,
   errors,
   utils
 } = require('cozy-konnector-libs')
@@ -15,7 +13,6 @@ let request = requestFactory({
   json: true
 })
 const moment = require('moment')
-const { Document } = require('cozy-doctypes')
 
 module.exports = new BaseKonnector(start)
 
@@ -35,7 +32,7 @@ async function start(fields) {
   const response = await fetchBills(fields)
   user.contract_type = response.customer_bills[0].contract_type
 
-  await saveIdentity.bind(this)(user, fields)
+  await formatAndSaveIdentity.bind(this)(user, fields)
 
   const bills = response.customer_bills.map(bill => {
     return {
@@ -49,7 +46,8 @@ async function start(fields) {
     }
   })
 
-  await saveBills(bills, fields, {
+  await this.saveBills(bills, fields, {
+    sourceAccountIdentifier: user.email,
     identifiers: ['orange'],
     contentType: 'application/pdf; charset=IBM850',
     processPdf: (entry, text, cells) => {
@@ -170,32 +168,7 @@ async function fetchBills(fields) {
   return response
 }
 
-async function saveIdentity(user, fields) {
-  class Identity extends Document {
-    static addCozyMetadata(attributes) {
-      super.addCozyMetadata(attributes)
-
-      const index = attributes.cozyMetadata.updatedByApps.findIndex(
-        app => app.slug === manifest.slug
-      )
-      if (index !== -1)
-        attributes.cozyMetadata.updatedByApps[index].version = manifest.version
-      Object.assign(attributes.cozyMetadata, {
-        doctypeVersion: 2,
-        createdAt: new Date(),
-        createdByAppVersion: manifest.version,
-        sourceAccount: Identity.accountId
-      })
-
-      return attributes
-    }
-  }
-  Identity.doctype = 'io.cozy.identities'
-  Identity.idAttributes = ['identifier', 'cozyMetadata.sourceAccount']
-  Identity.createdByApp = manifest.slug
-  Identity.registerClient(cozyClient)
-  Identity.accountId = this._account._id
-
+async function formatAndSaveIdentity(user, fields) {
   this._account = await ensureAccountNameAndFolder(this._account, fields, user)
 
   if (user.email) {
@@ -232,21 +205,15 @@ async function saveIdentity(user, fields) {
       ]
     }
 
-    await Identity.createOrUpdate(Identity.addCozyMetadata(ident))
-
-    // also save to the me contact doctype
-    Identity.doctype = 'io.cozy.contacts'
-    Identity.idAttributes = ['me']
-    Identity.createdByApp = manifest.slug
-    Identity.accountId = this.accountId
-
-    // only create the "me" contact when it does not exist
-    const meContacts = await Identity.queryAll({
-      me: true
-    })
+    await this.saveIdentity(ident.contact, ident.identifier)
+    const meContacts = await utils.queryAll('io.cozy.contacts', { me: true })
     if (meContacts.length === 0) {
       log('info', `The "me" contact could not be found, creating it`)
-      await Identity.createOrUpdate({ ...ident.contact, me: true })
+      await this.updateOrCreate(
+        [{ ...ident.contact, me: true }],
+        'io.cozy.contacts',
+        ['me']
+      )
     } else {
       log('info', `Found a "me" contact. Nothing to do`)
     }
