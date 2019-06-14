@@ -197,8 +197,8 @@ async function formatAndSaveIdentity(user, fields) {
     if (user.address) {
       ident.contact.address = [
         {
-          formattedAddress: user.address.formatted,
-          street: user.address.street_address,
+          formattedAddress: user.address.formatted.replace(/\r\n|\n/g, ' '),
+          street: user.address.street_address.replace(/\r\n|\n/g, ' '),
           postcode: user.address.postal_code,
           city: user.address.locality
         }
