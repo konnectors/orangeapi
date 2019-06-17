@@ -30,6 +30,7 @@ async function start(fields) {
   )
 
   const response = await fetchBills(fields)
+
   user.contract_type = response.customer_bills[0].contract_type
 
   await formatAndSaveIdentity.bind(this)(user, fields)
@@ -42,6 +43,22 @@ async function start(fields) {
           : `${utils.formatDate(bill.creation_date)}_facture_internet.pdf`,
       filestream: bill.file,
       vendor: 'Orange',
+      fileAttributes: {
+        metadata: {
+          id: bill.file_id,
+          classification: 'invoicing',
+          datetime: new Date(bill.creation_date),
+          datetimeLabel: 'issueDate',
+          contentAuthor: 'orange',
+          categories: [
+            bill.contract_type === 'mobile' ? 'phone' : 'isp',
+            'telecom'
+          ],
+          subClassification: 'invoice',
+          issueDate: new Date(bill.creation_date),
+          isSubscription: true
+        }
+      },
       date: new Date(bill.creation_date)
     }
   })
@@ -51,48 +68,89 @@ async function start(fields) {
     identifiers: ['orange'],
     contentType: 'application/pdf; charset=IBM850',
     processPdf: (entry, text, cells) => {
-      const dateIndex = cells['1'].findIndex(
-        cell => cell.str === 'total du montant prélevé'
+      const numClientLine = text
+        .split('\n')
+        .find(line => line.includes('n° client'))
+      if (numClientLine) {
+        entry.fileAttributes.metadata.contractReference = numClientLine
+          .split(' ')
+          .pop()
+      }
+      const [dateLabelCell, dateCell] = findDateCells(cells['1'])
+      const date = moment(dateCell.str.replace('au ', ''), 'DD.MM.YYYY')
+      entry.date = date.toDate()
+
+      const amountCell = findAmountCell(
+        cells['1'],
+        cloneObj(dateLabelCell),
+        cloneObj(dateCell)
       )
-      const date = moment(
-        cells['1'][dateIndex + 1].str.replace('au ', ''),
-        'DD.MM.YYYY'
-      )
-
-      const top =
-        cells['1'][dateIndex].transform.pop() + cells['1'][dateIndex].height
-      const bottom = cells['1'][dateIndex + 1].transform.pop()
-
-      const amountCell = cells['1'].find(cell => {
-        const cellBottom = cell.transform.pop()
-        const cellTop = cellBottom + cell.height
-        return (
-          cellBottom > bottom &&
-          cellTop < top &&
-          parseFloat(
-            cell.str
-              .replace('€', '')
-              .replace(',', '.')
-              .trim()
-          )
-        )
-      })
-
       const amount = parseFloat(
         amountCell.str
           .replace(',', '.')
           .replace('€', '')
           .trim()
       )
-
-      entry.date = date.toDate()
       entry.amount = amount
 
-      log('info', 'resulting entry')
-      log('info', JSON.stringify(entry))
+      const invoiceNumberCell = findInvoiceNumberCell(cells['1'])
+      if (invoiceNumberCell) {
+        entry.fileAttributes.metadata.invoiceNumber = invoiceNumberCell.str.trim()
+      }
+
       return entry
     }
   })
+}
+
+function findInvoiceNumberCell(cells) {
+  let billNbLabelCell = cells.find(
+    cell => cell.str.trim() === 'n° de facture :'
+  )
+  if (!billNbLabelCell) return false
+
+  billNbLabelCell = cloneObj(billNbLabelCell)
+  const bottom = billNbLabelCell.transform.pop()
+  const top = bottom + billNbLabelCell.height
+
+  const billNbCell = cells
+    .filter(cell => {
+      const currentCell = cloneObj(cell)
+      const cellBottom = currentCell.transform.pop()
+      const cellTop = cellBottom + currentCell.height
+      return cellBottom >= bottom && cellTop <= top
+    })
+    .pop()
+  return billNbCell
+}
+
+function findDateCells(cells) {
+  const dateIndex = cells.findIndex(
+    cell => cell.str === 'total du montant prélevé'
+  )
+  return [cells[dateIndex], cells[dateIndex + 1]]
+}
+
+function findAmountCell(cells, dateLabelCell, dateCell) {
+  const top = dateLabelCell.transform.pop() + dateLabelCell.height
+  const bottom = dateCell.transform.pop()
+
+  const amountCell = cells.find(cell => {
+    const currentCell = cloneObj(cell)
+    const cellBottom = currentCell.transform.pop()
+    const cellTop = cellBottom + cell.height
+    return (
+      cellBottom > bottom &&
+      cellTop < top &&
+      parseFloat(
+        cell.str
+          .replace('€', '')
+          .replace(',', '.')
+          .trim()
+      )
+    )
+  })
+  return amountCell
 }
 
 function parseFile(file) {
@@ -298,4 +356,8 @@ async function checkToken(fields) {
       }
     }
   }
+}
+
+function cloneObj(obj) {
+  return JSON.parse(JSON.stringify(obj))
 }
