@@ -30,12 +30,6 @@ deploy:
   script: DEPLOY_BRANCH=build yarn deploy && yarn cozyPublish --postpublish mattermost --space orange
   on:
     tags: true
-- provider: script
-  skip-cleanup: true
-  script: DEPLOY_BRANCH=build yarn deploy && yarn cozyPublish --postpublish mattermost
-  on:
-    tags: true
-    condition: $TRAVIS_TAG =~ ^beta$
 before_install:
 - openssl aes-256-cbc -K $encrypted_eeb1fbebcb96_key -iv $encrypted_eeb1fbebcb96_iv
   -in github_deploy_key.enc -out /tmp/github_deploy_key -d
