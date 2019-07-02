@@ -1,6 +1,6 @@
 {
   "name": "cozy-konnector-orangeapi",
-  "version": "1.2.0",
+  "version": "1.1.0",
   "description": "",
   "repository": {
     "type": "git",
@@ -53,7 +53,7 @@
     "husky": "2.7.0",
     "konitor": "0.10.2",
     "svgo": "1.2.2",
-    "webpack": "4.35.2",
+    "webpack": "4.35.0",
     "webpack-cli": "3.3.5"
   }
 }
