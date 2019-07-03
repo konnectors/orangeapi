@@ -264,6 +264,17 @@ async function formatAndSaveIdentity(user, fields) {
     }
 
     await this.saveIdentity(ident.contact, ident.identifier)
+    const meContacts = await utils.queryAll('io.cozy.contacts', { me: true })
+    if (meContacts.length === 0) {
+      log('info', `The "me" contact could not be found, creating it`)
+      await this.updateOrCreate(
+        [{ ...ident.contact, me: true }],
+        'io.cozy.contacts',
+        ['me']
+      )
+    } else {
+      log('info', `Found a "me" contact. Nothing to do`)
+    }
   }
 }
 
