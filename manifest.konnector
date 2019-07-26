@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "name": "Orange",
   "type": "konnector",
   "language": "node",
@@ -20,11 +20,6 @@
       "type": "hidden"
     }
   },
-  "folders": [
-    {
-      "defaultDir": "$administrative"
-    }
-  ],
   "oauth": {
     "scope": [
       "profile_limited form_filling customer_bill_last_recurrent"
@@ -35,9 +30,6 @@
   ],
   "screenshots": [],
   "permissions": {
-    "contacts": {
-      "type": "io.cozy.contacts"
-    },
     "bank operations": {
       "type": "io.cozy.bank.operations"
     },
@@ -67,9 +59,6 @@
       "short_description": "Récupère votre dernière facture",
       "long_description": "Récupère votre dernière facture et vos informations de profil client Orange",
       "permissions": {
-        "contacts": {
-          "description": "Utilisé pour mettre à jour votre fiche contact personnelle"
-        },
         "bank operations": {
           "description": "Utilisé pour relier les factures à des operations bancaires"
         },
@@ -91,9 +80,6 @@
       "short_description": "Fetch your bills",
       "long_description": "Fetch your last bill and your Orange customer profile information",
       "permissions": {
-        "contacts": {
-          "description": "Required to create your personnal contact form"
-        },
         "bank operations": {
           "description": "Required to link bank operations to bills"
         },
