@@ -301,7 +301,7 @@ async function ensureAccountNameAndFolder(account, fields, user) {
       }
     )
 
-    fields.folderPath = newFolder.attributes.path
+    fields.folderPath = newFolder.attributes.path // eslint-disable-line require-atomic-updates
 
     log('info', `Updating the folder path in the account`)
     newAccount = await cozyClient.data.updateAttributes(
