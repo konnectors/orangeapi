@@ -16,6 +16,7 @@ branches:
   except:
   - build
   - build-debug
+  - /^renovate.*?/
 script:
 - yarn lint
 - yarn build
