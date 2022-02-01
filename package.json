@@ -39,7 +39,7 @@
   "dependencies": {
     "cozy-konnector-libs": "4.45.0",
     "moment": "2.29.1",
-    "multiparty": "4.2.2"
+    "multiparty": "4.2.3"
   },
   "devDependencies": {
     "cozy-jobs-cli": "1.16.6",
